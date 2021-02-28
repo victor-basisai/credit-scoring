@@ -26,6 +26,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import roc_curve
+from catboost import CatBoostClassifier
 
 
 def load_dataset(filepath, target='TARGET', drop_columns=[]):
@@ -105,6 +106,28 @@ def train_rf_model(X, y, seed=0, n_estimators=100, verbose=False, upsample=True)
     verbose and print('fitting...')
     verbose and print('n_estimators:', n_estimators)
     model = RandomForestClassifier(random_state=seed, n_estimators=n_estimators)
+    model.fit(X, y)
+
+    verbose and print('chaining pipeline...')
+    pipe = Pipeline([('scaling', scaling), ('model', model)])
+    verbose and print('done.')
+    return pipe
+
+
+def train_catboost_model(X, y, seed=0, iterations=100, verbose=False, upsample=True):
+    if upsample:
+        verbose and print('upsampling...')
+        categorical_features = [i for i, col in enumerate(X.columns) if X[col].dtype == 'int8']
+        smote = SMOTENC(random_state=seed, categorical_features=categorical_features)
+        X, y = smote.fit_resample(X, y)
+
+    verbose and print('scaling...')
+    scaling = StandardScaler()
+    X = scaling.fit_transform(X)
+
+    verbose and print('fitting...')
+    verbose and print('iterations:', iterations)
+    model = CatBoostClassifier(random_state=seed, iterations=iterations, cat_features=None)
     model.fit(X, y)
 
     verbose and print('chaining pipeline...')
