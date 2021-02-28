@@ -4,12 +4,8 @@ version = "1.0"
 # TODO: name the steps
 train {
     step train {
-        image = "basisai/workload-standard:v0.2.2"
+        image = "continuumio/miniconda3:latest"
         install = [
-            "wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh",
-            "bash ~/miniconda.sh -b -p ~/miniconda",
-            "rm ~/miniconda.sh",
-            "export PATH=$HOME/miniconda/bin:$PATH",
             "conda env update -f environment-train.yaml",
             "eval \"$(conda shell.bash hook)\"",
             "conda activate veritas"
