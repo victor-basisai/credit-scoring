@@ -34,7 +34,7 @@ dependencies:
   # - pip:  # Add packages not available for conda here
   #     - plotly
   # Bedrock
+  - shap=0.37.0
+  - aif360=0.3.0
   - pip:
     - bdrk[model-monitoring]>=0.6.0
-    - shap>=0.38.1
-    - aif360>=0.3.0
