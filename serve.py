@@ -118,7 +118,7 @@ def get_inference():
 @app.route("/", methods=["GET"])
 def get_score():
     """Returns the help page"""
-    return "<h1 style='color:blue'>Hello Veritas Model Server!</h1>"
+    return "<h1 style='color:blue'>Hello Credit Scoring Model Server!</h1>"
 
 
 def main():
