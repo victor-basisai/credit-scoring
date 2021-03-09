@@ -1,6 +1,13 @@
 """
 Flask app for serving a model version
 """
+# -----------------------------------------
+# Workshop - List of TODOs for serve.py
+# -----------------------------------------
+# 1. Customise route for API endpoint: model prediction and test with a POST request
+# Optionals:
+# A. Customise the text color of the index page to differentiate models
+
 import pickle
 import numpy as np
 import json
@@ -93,8 +100,8 @@ def get_metrics():
     )
     return Response(body, content_type=content_type)
 
-# TODO - change route to /predict
-@app.route("/infer", methods=["POST"])
+# TODO - Customise route for API endpoint: model prediction and test with a POST request
+@app.route("/hellothere", methods=["POST"])
 def get_inference():
     """Returns the predicted class probabilies given some input data in JSON
     """    
@@ -114,10 +121,10 @@ def get_inference():
     }
     return result
 
-
+# TODO - optional: customise the text color to differentiate models
 @app.route("/", methods=["GET"])
 def get_score():
-    """Returns the help page"""
+    """Returns the index page with coloured text"""
     return "<h1 style='color:green'>Hello Credit Scoring Model Server!</h1>"
 
 

@@ -1,6 +1,18 @@
 """
 Python script for training a model version
 """
+
+# -----------------------------------------
+# Workshop - List of TODOs for train.py
+# -----------------------------------------
+# 1. Bedrock model monitoring: Log down ROC AUC and Avg precision in compute_log_metrics()
+# 2. Explainability metrics: fill in the required inputs for ModelAnalyzer() in compute_log_metrics()
+# 3. Fairness metrics: fill in the required inputs for the ModelAnalyzer() instance in compute_log_metrics()
+# Optionals:
+# A. Switch the pipeline to use a random forest model
+# B. Switch the pipeline to use a catboost model
+
+
 # Core Packages
 import os
 import json
@@ -75,24 +87,22 @@ def compute_log_metrics(model, x_train,
                            test_prob.flatten().tolist())
 
     bedrock.log_metric("Accuracy", acc)
-    # TODO - Fill in the blanks
+    # TODO - Bedrock model monitoring: Fill in the blanks
     # Add ROC AUC and Avg precision
-    bedrock.log_metric("ROC AUC", roc_auc)
-    bedrock.log_metric("Avg precision", avg_prc)
+    # bedrock.log_metric("...", ...)
 
-    
-    # TODO - Fill in the blanks
+    # TODO - Explainability metrics: Fill in the blanks
     # Bedrock Model Analyzer: generates model explainability and fairness metrics
     # Requires model object from pipeline to be passed in
-    analyzer = ModelAnalyzer(model[1], model_name=model_name, model_type=model_type)\
-                    .train_features(x_train)\
-                    .test_features(x_test)
+    analyzer = ModelAnalyzer(..., model_name=model_name, model_type=model_type)\
+                    .train_features(...)\
+                    .test_features(...)
     
-    # TODO - Fill in the blanks
+    # TODO - Fairness metrics: Fill in the blanks
     # Apply fairness config to the Bedrock Model Analyzer instance
-    analyzer.fairness_config(CONFIG_FAI)\
-        .test_labels(y_test)\
-        .test_inference(test_pred)
+    analyzer.fairness_config(...)\
+        .test_labels(...)\
+        .test_inference(...)
     
     # Return the 4 metrics
     return analyzer.analyze()
@@ -107,15 +117,15 @@ def main():
     x_train, y_train = utils.load_dataset(os.path.join('data', 'creditdata', 'creditdata_train_v2.csv'), drop_columns=drop_cols)
     x_test, y_test = utils.load_dataset(os.path.join('data', 'creditdata', 'creditdata_test_v2.csv'), drop_columns=drop_cols)
 
-    # MODEL 1: LOGISTIC REGRESSION
-    # # Use best parameters from a model selection and threshold tuning process
-    # best_regularizer = 1e-1
-    # best_th = 0.43
-    # model = utils.train_log_reg_model(x_train, y_train, seed=0, C=best_regularizer, upsample=True, verbose=True)
-    # model_name = "logreg_model"
-    # model_type = ModelTypes.LINEAR
+    # MODEL 1: Baseline model
+    # Use best parameters from a model selection and threshold tuning process
+    best_regularizer = 1e-1
+    best_th = 0.43
+    model = utils.train_log_reg_model(x_train, y_train, seed=0, C=best_regularizer, upsample=True, verbose=True)
+    model_name = "logreg_model"
+    model_type = ModelTypes.LINEAR
 
-    # TODO - Optional: Uncomment this later
+    # TODO - Optional: Switch to random forest model
     # # MODEL 2: RANDOM FOREST
     # # Uses default threshold of 0.5 and model parameters
     # best_th = 0.5
@@ -123,16 +133,16 @@ def main():
     # model_name = "randomforest_model"
     # model_type = ModelTypes.TREE
 
-    # TODO - Optional: Uncomment this later
-    # MODEL 3: CATBOOST
-    # Uses default threshold of 0.5 and model parameters
-    best_th = 0.5
-    model = utils.train_catboost_model(x_train, y_train, seed=0, upsample=True, verbose=True)
-    model_name = "catboost_model"
-    model_type = ModelTypes.TREE
+    # # TODO - Optional: Switch to catboost model
+    # # MODEL 3: CATBOOST
+    # # Uses default threshold of 0.5 and model parameters
+    # best_th = 0.5
+    # model = utils.train_catboost_model(x_train, y_train, seed=0, upsample=True, verbose=True)
+    # model_name = "catboost_model"
+    # model_type = ModelTypes.TREE
 
-
-    # If model is in an sklearn pipeline, extract it
+    # Compute explainability and fairness metrics
+    # TODO - Optional: can you find a way to save these outputs as artefacts in pickle form?
     (
         shap_values, 
         base_shap_values, 
@@ -146,7 +156,7 @@ def main():
     # TODO - Save the model artefact by filling in the blanks
     # So that the model is viewable on the Bedrock UI
     with open(OUTPUT_MODEL_PATH, "wb") as model_file:
-        pickle.dump(model, model_file)
+        pickle.dump(..., model_file)
     
     # IMPORTANT: LOG TRAINING MODEL ON UI to compare to DEPLOYED MODEL
     train_prob = model.predict_proba(x_train)[:, 1]
