@@ -8,6 +8,7 @@ Python script for training a model version
 # 1. Bedrock model monitoring: Log down ROC AUC and Avg precision in compute_log_metrics()
 # 2. Explainability metrics: fill in the required inputs for ModelAnalyzer() in compute_log_metrics()
 # 3. Fairness metrics: fill in the required inputs for the ModelAnalyzer() instance in compute_log_metrics()
+# 4. Save the model artefact!
 # Optionals:
 # A. Switch the pipeline to use a random forest model
 # B. Switch the pipeline to use a catboost model
@@ -94,7 +95,7 @@ def compute_log_metrics(model, x_train,
     # TODO - Explainability metrics: Fill in the blanks
     # Bedrock Model Analyzer: generates model explainability and fairness metrics
     # Requires model object from pipeline to be passed in
-    analyzer = ModelAnalyzer(..., model_name=model_name, model_type=model_type)\
+    analyzer = ModelAnalyzer(model[1], model_name=model_name, model_type=model_type)\
                     .train_features(...)\
                     .test_features(...)
     
@@ -153,10 +154,11 @@ def main():
                             best_th=best_th,
                             model_name=model_name, model_type=model_type)
 
-    # TODO - Save the model artefact by filling in the blanks
+    # TODO - Save the model artefact! by filling in the blanks
     # So that the model is viewable on the Bedrock UI
-    with open(OUTPUT_MODEL_PATH, "wb") as model_file:
-        pickle.dump(..., model_file)
+    # Hint: fill in the file path that has been defined as a constant above
+    with open(..., "wb") as model_file:
+        pickle.dump(model, model_file)
     
     # IMPORTANT: LOG TRAINING MODEL ON UI to compare to DEPLOYED MODEL
     train_prob = model.predict_proba(x_train)[:, 1]
