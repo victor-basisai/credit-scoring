@@ -53,7 +53,13 @@ class Model(BaseModel):
         features = list()
         for col in FEATURES:
             features.append(samples[col])
-        return [float(s) for s in features]
+
+        # Format input data into:
+        # [
+        #   [0.123],
+        #   [0.456]
+        # ]
+        return [[float(s)] for s in features]
 
     # Optional - Post-process
     def post_process(
