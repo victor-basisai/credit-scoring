@@ -3,7 +3,7 @@ version = "1.0"
 
 # TODO: name the steps
 serve {
-    image = "basisai/express-flask:v0.0.4"
+    image = "basisai/express-flask:v0.0.3"
     install = [
         "pip3 install --upgrade pip",
         "pip3 install -r requirements-serve.txt",
