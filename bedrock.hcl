@@ -35,6 +35,9 @@ serve {
         ]}
     ]
     parameters {
+        // Number of gunicorn workers to use
         WORKERS = "1"
+        // Gunicorn log level
+        LOG_LEVEL = "INFO"
     }
 }
