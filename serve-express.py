@@ -47,7 +47,7 @@ class Model(BaseModel):
             self, http_body: AnyStr, files: Optional[Mapping[str, BinaryIO]] = None
         ) -> List[List[float]]:
         
-        # Input is a JSON
+        # Prepare JSON HTTP body
         samples = json.loads(http_body)
 
         # Parse JSON into ordered list
@@ -55,13 +55,7 @@ class Model(BaseModel):
         for col in FEATURES:
             features.append(samples[col])
 
-        # Format from:
-        # [
-        #   [0.123],
-        #   [0.456]
-        # ]
-        # into
-        # [[0.123, 0.456]]
+        # Reshape into [[<feat1>, <feat2>, ...]]
         return np.array(features).reshape(1, -1)
 
     # Optional - Post-process
