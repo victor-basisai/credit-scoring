@@ -1,10 +1,10 @@
-# IMPORTANT: Bedrock HCL version
+// Bedrock HCL schema version (do not change!)
 version = "1.0"
 
 serve {
-    // Bedrock express image: flask
+    // Bedrock Express image
     image = "basisai/express-flask:v0.0.3"
-    // Installing Dependencies
+    // Installing dependencies
     install = [
         "pip3 install --upgrade pip",
         "pip3 install -r requirements-serve.txt",
