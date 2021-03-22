@@ -53,7 +53,7 @@ class Model(BaseModel):
         features = list()
         for col in FEATURES:
             features.append(samples[col])
-        return [[float(x) for x in s] for s in features]
+        return [float(s) for s in features]
 
     # Optional - Post-process
     def post_process(
