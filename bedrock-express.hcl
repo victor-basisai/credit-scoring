@@ -1,15 +1,19 @@
 # IMPORTANT: Bedrock HCL version
 version = "1.0"
 
-# TODO: name the steps
 serve {
+    // Bedrock express image: flask
     image = "basisai/express-flask:v0.0.3"
+    // Installing Dependencies
     install = [
         "pip3 install --upgrade pip",
         "pip3 install -r requirements-serve.txt",
     ]
+    // Special entrypoint for Bedrock Express
     script = [
-        {sh = ["python serve-express.py"]}
+        {sh = [
+            "/app/entrypoint.sh"
+        ]}
     ]
     parameters {
         // This should be the name of python module that has a subclass of BaseModel 
@@ -17,7 +21,7 @@ serve {
         // If not specified as a parameter it defaults to "serve"
         BEDROCK_SERVER = "serve-express"
         // Number of gunicorn workers to use
-        WORKERS = "2"
+        WORKERS = "1"
         // Gunicorn log level
         LOG_LEVEL = "INFO"
     }
