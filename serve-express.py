@@ -1,7 +1,7 @@
+import json
 import pickle
-from typing import List, Optional
-
 from bedrock_client.bedrock.model import BaseModel
+from typing import Any, AnyStr, BinaryIO, List, Mapping, Optional, Union
 
 
 # Ordered list of model features
@@ -33,24 +33,31 @@ FEATURES = [
 
 
 class Model(BaseModel):
-    def __init__(self, path: Optional[str] = None):
-        '''
-        Loads the model
-        '''
-        with open(path or "/artefact/model.pkl", "rb") as f:
+
+    def __init__(self):
+        with open("/artefact/model.pkl", "rb") as f:
             self.model = pickle.load(f)
 
-    def predict(self, request_json):
-        '''
-        Runs the prediction
-        '''
-        # Parse request_json into ordered list
+    def predict(self, features: List[List[float]]) -> List[float]:
+        return self.model.predict_proba(features)[:, 0].tolist()
+
+    # Optional - Pre-process
+    def pre_process(
+            self, http_body: AnyStr, files: Optional[Mapping[str, BinaryIO]] = None
+        ) -> List[List[float]]:
+        
+        # Input is a JSON
+        samples = json.loads(http_body)
+
+        # Parse JSON into ordered list
         features = list()
         for col in FEATURES:
-            features.append(request_json[col])
-        
-        # Return the result
-        result = {
-            "predicted_proba": self.model.predict_proba(np.array(features).reshape(1, -1))[:, 1].item()
-        }
-        return result
+            features.append(samples[col])
+        return [[float(x) for x in s] for s in features]
+
+    # Optional - Post-process
+    def post_process(
+            self, score: Union[List[float], List[Mapping[str, float]]], prediction_id: str
+        ) -> Union[AnyStr, Mapping[str, Any]]:
+
+        return {"result": score, "prediction_id": prediction_id}
