@@ -1,5 +1,6 @@
 import json
 import pickle
+import numpy as np
 from bedrock_client.bedrock.model import BaseModel
 from typing import Any, AnyStr, BinaryIO, List, Mapping, Optional, Union
 
@@ -54,12 +55,14 @@ class Model(BaseModel):
         for col in FEATURES:
             features.append(samples[col])
 
-        # Format input data into:
+        # Format from:
         # [
         #   [0.123],
         #   [0.456]
         # ]
-        return [[float(s)] for s in features]
+        # into
+        # [[0.123, 0.456]]
+        return np.array(features).reshape(1, -1)
 
     # Optional - Post-process
     def post_process(
