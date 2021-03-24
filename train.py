@@ -109,19 +109,19 @@ def main():
 
     # MODEL 1: LOGISTIC REGRESSION
     # # Use best parameters from a model selection and threshold tuning process
-    best_regularizer = 1e-1
-    best_th = 0.43
-    model = utils.train_log_reg_model(x_train, y_train, seed=0, C=best_regularizer, upsample=True, verbose=True)
-    model_name = "logreg_model"
-    model_type = ModelTypes.LINEAR
+#     best_regularizer = 1e-1
+#     best_th = 0.43
+#     model = utils.train_log_reg_model(x_train, y_train, seed=0, C=best_regularizer, upsample=True, verbose=True)
+#     model_name = "logreg_model"
+#     model_type = ModelTypes.LINEAR
 
     # TODO - Optional: Uncomment this later
     # # MODEL 2: RANDOM FOREST
     # # Uses default threshold of 0.5 and model parameters
-    # best_th = 0.5
-    # model = utils.train_rf_model(x_train, y_train, seed=0, upsample=True, verbose=True)
-    # model_name = "randomforest_model"
-    # model_type = ModelTypes.TREE
+    best_th = 0.5
+    model = utils.train_rf_model(x_train, y_train, seed=0, upsample=True, verbose=True)
+    model_name = "randomforest_model"
+    model_type = ModelTypes.TREE
 
     # TODO - Optional: Uncomment this later
     # MODEL 3: CATBOOST
