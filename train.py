@@ -76,7 +76,10 @@ def compute_log_metrics(model, x_train,
 
     bedrock.log_metric("Accuracy", acc)
     # TODO - Fill in the blanks
-    # Add ROC AUC and Avg precision
+    # Add the other metrics listed above
+    bedrock.log_metric("Precision", precision)
+    bedrock.log_metric("Recall", recall)
+    bedrock.log_metric("F1 score", f1_score)
     bedrock.log_metric("ROC AUC", roc_auc)
     bedrock.log_metric("Avg precision", avg_prc)
 
