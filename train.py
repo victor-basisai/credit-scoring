@@ -45,7 +45,7 @@ RAW_DATA_LOCAL = os.getenv("RAW_DATA_LOCAL")
 RAW_DATA_S3 = os.getenv("RAW_DATA_S3") 
 SEED = int(os.getenv("SEED"))
 TH = float(os.getenv("TH")) 
-LR_REGULARIZER = float(os.getenv("LOGREG_REGULARIZER")) 
+LR_REGULARIZER = float(os.getenv("LR_REGULARIZER")) 
 RF_N_ESTIMATORS = float(os.getenv("RF_N_ESTIMATORS")) 
 CB_ITERATIONS = float(os.getenv("CB_ITERATIONS")) 
 
