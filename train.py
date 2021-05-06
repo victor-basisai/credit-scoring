@@ -127,16 +127,16 @@ def main():
     # TODO - Optional: Uncomment this later
     # MODEL 2: RANDOM FOREST
     # Uses default threshold of 0.5 and model parameters
-    model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
-    model_name = "randomforest_model"
-    model_type = ModelTypes.TREE
+    # model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
+    # model_name = "randomforest_model"
+    # model_type = ModelTypes.TREE
 
     # TODO - Optional: Uncomment this later
     # MODEL 3: CATBOOST
     # Uses default threshold of 0.5 and model parameters
-    # model = utils.train_catboost_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
-    # model_name = "catboost_model"
-    # model_type = ModelTypes.TREE
+    model = utils.train_catboost_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
+    model_name = "catboost_model"
+    model_type = ModelTypes.TREE
 
 
     # If model is in an sklearn pipeline, extract it
