@@ -41,6 +41,14 @@ CONFIG_FAI = {
     }
 }
 
+RAW_DATA_LOCAL = os.getenv("RAW_DATA_LOCAL") 
+RAW_DATA_S3 = os.getenv("RAW_DATA_S3") 
+SEED = int(os.getenv("SEED"))
+TH = float(os.getenv("TH")) 
+LR_REGULARIZER = float(os.getenv("LOGREG_REGULARIZER")) 
+RF_N_ESTIMATORS = float(os.getenv("RF_N_ESTIMATORS")) 
+CB_ITERATIONS = float(os.getenv("CB_ITERATIONS")) 
+
 # ---------------------------------
 # Bedrock functions
 # ---------------------------------
@@ -112,24 +120,20 @@ def main():
 
     # MODEL 1: LOGISTIC REGRESSION
     # Use best parameters from a model selection and threshold tuning process
-#     best_regularizer = 1e-1
-#     best_th = 0.43
-#     model = utils.train_log_reg_model(x_train, y_train, seed=0, C=best_regularizer, upsample=True, verbose=True)
-#     model_name = "logreg_model"
-#     model_type = ModelTypes.LINEAR
+    model = utils.train_log_reg_model(x_train, y_train, seed=0, C=LR_REGULARIZER, upsample=True, verbose=True)
+    model_name = "logreg_model"
+    model_type = ModelTypes.LINEAR
 
     # TODO - Optional: Uncomment this later
     # MODEL 2: RANDOM FOREST
     # Uses default threshold of 0.5 and model parameters
-    best_th = 0.5
-    model = utils.train_rf_model(x_train, y_train, seed=0, upsample=True, verbose=True)
-    model_name = "randomforest_model"
-    model_type = ModelTypes.TREE
+#     model = utils.train_rf_model(x_train, y_train, seed=0, upsample=True, verbose=True)
+#     model_name = "randomforest_model"
+#     model_type = ModelTypes.TREE
 
     # TODO - Optional: Uncomment this later
     # MODEL 3: CATBOOST
     # Uses default threshold of 0.5 and model parameters
-#     best_th = 0.5
 #     model = utils.train_catboost_model(x_train, y_train, seed=0, upsample=True, verbose=True)
 #     model_name = "catboost_model"
 #     model_type = ModelTypes.TREE
@@ -143,7 +147,7 @@ def main():
         fairness_metrics,
     ) = compute_log_metrics(model=model, x_train=x_train, 
                             x_test=x_test, y_test=y_test, 
-                            best_th=best_th,
+                            best_th=TH,
                             model_name=model_name, model_type=model_type)
 
     # TODO - Save the model artefact by filling in the blanks
@@ -153,12 +157,12 @@ def main():
     
     # IMPORTANT: LOG TRAINING MODEL ON UI to compare to DEPLOYED MODEL
     train_prob = model.predict_proba(x_train)[:, 1]
-    train_pred = np.where(train_prob > best_th, 1, 0)
+    train_pred = np.where(train_prob > TH, 1, 0)
 
     # Add the Model Monitoring Service and export the metrics
     ModelMonitoringService.export_text(
         features=x_train.iteritems(),
-        inference=train_pred.tolist(),
+        inference=train_prob.tolist(),
     )
 
     print("Done!")
