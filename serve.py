@@ -119,6 +119,8 @@ def get_inference():
 def get_score():
     """Returns the help page"""
     return "<h1 style='color:red'>Hello Credit Scoring Model Server!</h1>"
+    # return "<h1 style='color:blue'>Hello Credit Scoring Model Server!</h1>"
+    # return "<h1 style='color:green'>Hello Credit Scoring Model Server!</h1>"
 
 
 def main():

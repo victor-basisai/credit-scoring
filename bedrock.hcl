@@ -16,9 +16,15 @@ train {
             cpu = "1.0"
             memory = "4G"
         }
-        parameters {
-            TRAINING_DATA_AWS_BUCKET = "s3://veritas-credit-scoring/data/training/latest"
-        }
+    }
+    parameters {
+        RAW_DATA_LOCAL = "data/creditdata/creditdata_train_v2.csv"
+        RAW_DATA_S3 = "s3://veritas-credit-scoring/data/training/latest"
+        SEED = "0"
+        TH = "0.5"
+        LR_REGULARIZER = "1e-1"
+        RF_N_ESTIMATORS = "100"
+        CB_ITERATIONS = "100"
     }
 }
 
