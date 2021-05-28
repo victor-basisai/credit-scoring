@@ -41,8 +41,8 @@ CONFIG_FAI = {
     }
 }
 
-RAW_DATA_LOCAL = os.getenv("RAW_DATA_LOCAL") 
-RAW_DATA_S3 = os.getenv("RAW_DATA_S3") 
+# Retrieving environmental params from Bedrock HCL
+DATA_DIR_LOCAL = os.getenv("DATA_DIR_LOCAL") 
 SEED = int(os.getenv("SEED"))
 TH = float(os.getenv("TH"))
 LR_REGULARIZER = float(os.getenv("LR_REGULARIZER")) 
@@ -76,31 +76,29 @@ def compute_log_metrics(model, x_train,
           f"  ROC AUC           = {roc_auc:.4f}\n"
           f"  Average precision = {avg_prc:.4f}")
 
-
+    # --- Bedrock-native Integrations ---
     # Bedrock Logger: captures model metrics
     bedrock = BedrockApi(logging.getLogger(__name__))
+
+    # Log into a chart
     bedrock.log_chart_data(y_test.astype(int).tolist(),
                            test_prob.flatten().tolist())
 
+    # Log key-value pairs
     bedrock.log_metric("Accuracy", acc)
-    # TODO - Fill in the blanks
-    # Add the other metrics listed above
     bedrock.log_metric("Precision", precision)
     bedrock.log_metric("Recall", recall)
     bedrock.log_metric("F1 score", f1_score)
     bedrock.log_metric("ROC AUC", roc_auc)
     bedrock.log_metric("Avg precision", avg_prc)
 
-    
-    # TODO - Fill in the blanks
     # Bedrock Model Analyzer: generates model explainability and fairness metrics
-    # Requires model object from pipeline to be passed in
+    # Analyzer (optional): generate explainability metrics
     analyzer = ModelAnalyzer(model[1], model_name=model_name, model_type=model_type)\
                     .train_features(x_train)\
                     .test_features(x_test)
     
-    # TODO - Fill in the blanks
-    # Apply fairness config to the Bedrock Model Analyzer instance
+    # Analyzer (optional): generate fairness metrics
     analyzer.fairness_config(CONFIG_FAI)\
         .test_labels(y_test)\
         .test_inference(test_pred)
@@ -108,30 +106,32 @@ def compute_log_metrics(model, x_train,
     # Return the 4 metrics
     return analyzer.analyze()
 
+
 def main():
     # Extraneous columns (as might be determined through feature selection)
     drop_cols = ['ID']
 
-    # Load into Dataframes
+    # --- Data ETL ---
+    # Load into pandas dataframes
     # x_<name> : features
     # y_<name> : labels
-    x_train, y_train = utils.load_dataset(os.path.join('data', 'creditdata', 'creditdata_train_v2.csv'), drop_columns=drop_cols)
-    x_test, y_test = utils.load_dataset(os.path.join('data', 'creditdata', 'creditdata_test_v2.csv'), drop_columns=drop_cols)
+    x_train, y_train = utils.load_dataset(os.path.join(DATA_DIR_LOCAL, 'creditdata_train_v2.csv'), drop_columns=drop_cols)
+    x_test, y_test = utils.load_dataset(os.path.join(DATA_DIR_LOCAL, 'creditdata_test_v2.csv'), drop_columns=drop_cols)
 
+    
+    # --- Candidate Binary Classification Algos ---
     # MODEL 1: LOGISTIC REGRESSION
     # Use best parameters from a model selection and threshold tuning process
-    # model = utils.train_log_reg_model(x_train, y_train, seed=SEED, C=LR_REGULARIZER, upsample=True, verbose=True)
-    # model_name = "logreg_model"
-    # model_type = ModelTypes.LINEAR
+    model = utils.train_log_reg_model(x_train, y_train, seed=SEED, C=LR_REGULARIZER, upsample=True, verbose=True)
+    model_name = "logreg_model"
+    model_type = ModelTypes.LINEAR
 
-    # TODO - Optional: Uncomment this later
     # MODEL 2: RANDOM FOREST
     # Uses default threshold of 0.5 and model parameters
-    model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
-    model_name = "randomforest_model"
-    model_type = ModelTypes.TREE
+    # model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
+    # model_name = "randomforest_model"
+    # model_type = ModelTypes.TREE
 
-    # TODO - Optional: Uncomment this later
     # MODEL 3: CATBOOST
     # Uses default threshold of 0.5 and model parameters
     # model = utils.train_catboost_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
@@ -139,7 +139,8 @@ def main():
     # model_type = ModelTypes.TREE
 
 
-    # If model is in an sklearn pipeline, extract it
+    # --- Bedrock-native Integrations ---
+    # Bedrock Model Analyzer: generated values
     (
         shap_values, 
         base_shap_values, 
@@ -150,28 +151,28 @@ def main():
                             best_th=TH,
                             model_name=model_name, model_type=model_type)
 
-    # TODO - Save the model artefact by filling in the blanks
-    # So that the model is viewable on the Bedrock UI
+    # IMPORTANT: Saving the Model Artefact  Bedrock
     with open(OUTPUT_MODEL_PATH, "wb") as model_file:
         pickle.dump(model, model_file)
     
-    # IMPORTANT: LOG TRAINING MODEL ON UI to compare to DEPLOYED MODEL
+    # Bedrock Model Monitoring: pre-requisite for monitoring concept drift
+    # Prepare the inference probabilities
     train_prob = model.predict_proba(x_train)[:, 1]
     train_pred = np.where(train_prob > TH, 1, 0)
 
-    # Add the Model Monitoring Service and export the metrics
+    # This step initialises the distribution from model training     
     ModelMonitoringService.export_text(
         features=x_train.iteritems(),
         inference=train_prob.tolist(),
     )
+    # --- End of Bedrock-native Integrations ---
 
     print("Done!")
 
 if __name__ == "__main__":
     try:
-        print("Hello world")
+        print("Hello Bedrock!")
         main()
     except Exception as e:
         print(e)
-        print("Hmm something went wrong...")
-        print("What?!")
+        print("Something went wrong...")
