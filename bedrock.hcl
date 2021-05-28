@@ -44,5 +44,7 @@ serve {
         WORKERS = "1"
         // Gunicorn log level
         LOG_LEVEL = "INFO"
+        // Index page color
+        COLOR = "red"
     }
 }
