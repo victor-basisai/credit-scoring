@@ -1,4 +1,4 @@
-# IMPORTANT: Bedrock HCL version
+# Bedrock HCL schema version (do not change!)
 version = "1.0"
 
 # Train Stanza
@@ -13,7 +13,7 @@ train {
             "eval \"$(conda shell.bash hook)\"",
             "conda activate veritas"
         ]
-        # Execute main script
+        # Entrypoint to main script
         script = [{sh = ["python train.py"]}]
         # Request resources
         resources {
