@@ -1,6 +1,7 @@
 """
 Flask app for serving a model version
 """
+import os
 import pickle
 import numpy as np
 import json
@@ -12,6 +13,9 @@ from bedrock_client.bedrock.metrics.service import ModelMonitoringService
 # ---------------------------------
 
 MODEL_PATH = "/artefact/model.pkl"
+
+# Retrieving environmental params from Bedrock HCL
+COLOR = os.getenv("COLOR") 
 
 # Ordered list of model features
 FEATURES = [ 
@@ -117,10 +121,8 @@ def get_inference():
 
 @app.route("/", methods=["GET"])
 def get_score():
-    """Returns the help page"""
-    # return "<h1 style='color:red'>Hello Credit Scoring Model Server!</h1>"
-    return "<h1 style='color:blue'>Hello Credit Scoring Model Server!</h1>"
-    # return "<h1 style='color:green'>Hello Credit Scoring Model Server!</h1>"
+    """Returns the index page"""
+    return "<h1 style='color:{}'>Hello Credit Scoring Model Server!</h1>".format(COLOR)
 
 
 def main():
