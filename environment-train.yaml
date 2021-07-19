@@ -38,4 +38,4 @@ dependencies:
   - shap=0.37.0
   - aif360=0.3.0
   - pip:
-    - bdrk[model-monitoring]>=0.6.0
+    - bdrk[model-monitoring]==0.8.2
