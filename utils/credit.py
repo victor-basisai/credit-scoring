@@ -127,7 +127,8 @@ def train_catboost_model(X, y, seed=0, iterations=100, verbose=False, upsample=T
 
     verbose and print('fitting...')
     verbose and print('iterations:', iterations)
-    model = CatBoostClassifier(random_state=seed, iterations=iterations, cat_features=None)
+    model = CatBoostClassifier(random_state=seed, iterations=iterations, cat_features=None, 
+                               custom_metric=['Logloss', 'AUC:hints=skip_train~false'])
 
     # For early stopping
     if eval_data is not None:
