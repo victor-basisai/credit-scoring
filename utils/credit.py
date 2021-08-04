@@ -26,7 +26,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import roc_curve
-from catboost import CatBoostClassifier
+from catboost import CatBoostClassifier, Pool
 
 
 def load_dataset(filepath, target='TARGET', drop_columns=[]):
@@ -114,7 +114,7 @@ def train_rf_model(X, y, seed=0, n_estimators=100, max_depth=None, verbose=False
     return pipe
 
 
-def train_catboost_model(X, y, seed=0, iterations=100, verbose=False, upsample=True):
+def train_catboost_model(X, y, seed=0, iterations=100, verbose=False, upsample=True, eval_data=None, eval_labels=None):
     if upsample:
         verbose and print('upsampling...')
         categorical_features = [i for i, col in enumerate(X.columns) if X[col].dtype == 'int8']
@@ -128,7 +128,13 @@ def train_catboost_model(X, y, seed=0, iterations=100, verbose=False, upsample=T
     verbose and print('fitting...')
     verbose and print('iterations:', iterations)
     model = CatBoostClassifier(random_state=seed, iterations=iterations, cat_features=None)
-    model.fit(X, y)
+
+    # For early stopping
+    if eval_data is not None:
+        eval_dataset = Pool(eval_data, eval_labels)
+        model.fit(X, y, eval_set=eval_dataset)
+    else:
+        model.fit(X, y)
 
     verbose and print('chaining pipeline...')
     pipe = Pipeline([('scaling', scaling), ('model', model)])
