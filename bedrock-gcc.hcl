@@ -36,8 +36,7 @@ serve {
     image = "python:3.7"
     # Install dependencies
     install = [
-        "pip3 install --upgrade pip",
-        ""pip install --user -r requirements-serve.txt --no-index --extra-index-url https://bdrk-sandbox-aws-data/pypi_libs/credit-scoring",
+        "pip install --user -r requirements-serve.txt --no-index --extra-index-url https://bdrk-sandbox-aws-data/pypi_libs/credit-scoring",
     ]
     # Execute main script
     script = [
