@@ -17,11 +17,10 @@ from sklearn.calibration import calibration_curve
 from sklearn import metrics
 import utils.credit as utils
 
-# Bedrock
-from bedrock_client.bedrock.analyzer.model_analyzer import ModelAnalyzer
-from bedrock_client.bedrock.analyzer import ModelTypes
-from bedrock_client.bedrock.api import BedrockApi
-from bedrock_client.bedrock.metrics.service import ModelMonitoringService
+# Bedrock and Boxkite
+import bdrk
+from bdrk.model_analyzer import ModelAnalyzer, ModelTypes
+from boxkite.monitoring.service import ModelMonitoringService
 import pickle
 import logging
 
@@ -77,24 +76,26 @@ def compute_log_metrics(model, x_train,
           f"  Average precision = {avg_prc:.4f}")
 
     # --- Bedrock-native Integrations ---
-    # Bedrock Logger: captures model metrics
-    bedrock = BedrockApi(logging.getLogger(__name__))
+    # Bedrock client library (bdrk): captures model metrics
+    bdrk.init()
+    with bdrk.start_run():
+        # Log binary classifier metrics into a chart
+        bdrk.log_binary_classifier_metrics(y_test.astype(int).tolist(),
+                                              test_prob.flatten().tolist())
 
-    # Log into a chart
-    bedrock.log_chart_data(y_test.astype(int).tolist(),
-                           test_prob.flatten().tolist())
-
-    # Log key-value pairs
-    bedrock.log_metric("Accuracy", acc)
-    bedrock.log_metric("Precision", precision)
-    bedrock.log_metric("Recall", recall)
-    bedrock.log_metric("F1 score", f1_score)
-    bedrock.log_metric("ROC AUC", roc_auc)
-    bedrock.log_metric("Avg precision", avg_prc)
+        # Log key-value pairs
+        bdrk.log_metric("Accuracy", acc)
+        bdrk.log_metric("Precision", precision)
+        bdrk.log_metric("Recall", recall)
+        bdrk.log_metric("F1 score", f1_score)
+        bdrk.log_metric("ROC AUC", roc_auc)
+        bdrk.log_metric("Avg precision", avg_prc)
 
     # Bedrock Model Analyzer: generates model explainability and fairness metrics
     # Analyzer (optional): generate explainability metrics
-    analyzer = ModelAnalyzer(model[1], model_name=model_name, model_type=model_type)\
+    analyzer = ModelAnalyzer(model[1], 
+                             model_name=model_name, 
+                             model_type=model_type)\
                     .train_features(x_train)\
                     .test_features(x_test)
     
