@@ -6,11 +6,12 @@ train {
     # Step
     step train {
         # Baseline Docker image
-        image = "quay.io/basisai/workload-standard:v0.3.1"
+        image = "continuumio/miniconda3:latest"
         # Install dependencies
         install = [
-            "pip3 install --upgrade pip",
-            "pip3 install -r requirements-train.txt",
+            "conda env update -f environment-train.yaml",
+            "eval \"$(conda shell.bash hook)\"",
+            "conda activate veritas"
         ]
         # Entrypoint to main script
         script = [{sh = ["python train.py"]}]
@@ -18,6 +19,10 @@ train {
         resources {
             cpu = "1.0"
             memory = "4G"
+        }
+        # Only attempt once (default = 3)
+        retry {
+            limit = 0
         }
     }
     # Environment params shared across all steps in stanza
