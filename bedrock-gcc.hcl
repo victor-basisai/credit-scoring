@@ -6,7 +6,7 @@ train {
     # Step
     step train {
         # Baseline Docker image
-        image = "052567997892.dkr.ecr.ap-southeast-1.amazonaws.com/quay.io/basisai/workload-standard:v0.3.1-awsquay.io/basisai/workload-standard:v0.3.1"
+        image = "052567997892.dkr.ecr.ap-southeast-1.amazonaws.com/quay.io/basisai/workload-standard:v0.3.1"
         # Install dependencies
         install = [
             "pip install --user -r requirements-train.txt",
@@ -33,7 +33,7 @@ train {
 # Serve Stanza
 serve {
     # Baseline Docker image
-    image = "052567997892.dkr.ecr.ap-southeast-1.amazonaws.com/quay.io/basisai/workload-standard:v0.3.1-awsquay.io/basisai/workload-standard:v0.3.1"
+    image = "052567997892.dkr.ecr.ap-southeast-1.amazonaws.com/quay.io/basisai/workload-standard:v0.3.1"
     # Install dependencies
     install = [
         "pip install --upgrade pip",
