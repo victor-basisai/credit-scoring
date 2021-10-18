@@ -6,10 +6,10 @@ train {
     # Step
     step train {
         # Baseline Docker image
-        image = "quay.io/basisai/workload-standard:v0.3.1"
+        image = "052567997892.dkr.ecr.ap-southeast-1.amazonaws.com/quay.io/basisai/workload-standard:v0.3.1-awsquay.io/basisai/workload-standard:v0.3.1"
         # Install dependencies
         install = [
-            "pip install --user -r requirements-train.txt --no-index --extra-index-url https://bdrk-sandbox-aws-data/pypi_libs/credit-scoring",
+            "pip install --user -r requirements-train.txt",
         ]
         # Entrypoint to main script
         script = [{sh = ["python train.py"]}]
@@ -33,10 +33,11 @@ train {
 # Serve Stanza
 serve {
     # Baseline Docker image
-    image = "python:3.7"
+    image = "052567997892.dkr.ecr.ap-southeast-1.amazonaws.com/quay.io/basisai/workload-standard:v0.3.1-awsquay.io/basisai/workload-standard:v0.3.1"
     # Install dependencies
     install = [
-        "pip install --user -r requirements-serve.txt --no-index --extra-index-url https://bdrk-sandbox-aws-data/pypi_libs/credit-scoring",
+        "pip install --upgrade pip",
+        "pip install -r requirements-serve.txt",
     ]
     # Execute main script
     script = [
