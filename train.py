@@ -28,10 +28,9 @@ import logging
 # Constants
 # ---------------------------------
 
-OUTPUT_MODEL_PATH = "/artefact/model.pkl"
-FEATURE_COLS_PATH = "/artefact/feature_cols.pkl"
+ARTEFACT_PATH = "/artefact/model.pkl"
 
-CONFIG_FAI = {
+FAI_CONFIG = {
     'SEX': {
         'privileged_attribute_values': [1],
         'privileged_group_name': 'Male',  # privileged group name corresponding to values=[1]
@@ -56,7 +55,9 @@ def compute_log_metrics(model, x_train,
                         x_test, y_test, 
                         best_th=0.5,
                         model_name="tree_model", 
-                        model_type=ModelTypes.TREE):
+                        model_type=ModelTypes.TREE,
+                        fai_config=None,
+                        artefact_path="/artefact/model.pkl"):
     """Compute and log metrics."""
     test_prob = model.predict_proba(x_test)[:, 1]
     test_pred = np.where(test_prob > best_th, 1, 0)
@@ -91,22 +92,29 @@ def compute_log_metrics(model, x_train,
         bdrk.log_metric("ROC AUC", roc_auc)
         bdrk.log_metric("Avg precision", avg_prc)
 
-    # Bedrock Model Analyzer: generates model explainability and fairness metrics
-    # Analyzer (optional): generate explainability metrics
-    analyzer = ModelAnalyzer(model[1], 
-                             model_name=model_name, 
-                             model_type=model_type)\
-                    .train_features(x_train)\
-                    .test_features(x_test)
-    
-    # Analyzer (optional): generate fairness metrics
-    analyzer.fairness_config(CONFIG_FAI)\
-        .test_labels(y_test)\
-        .test_inference(test_pred)
-    
-    # Return the 4 metrics
-    return analyzer.analyze()
+        # Bedrock Model Analyzer: generates model explainability and fairness metrics
+        # Analyzer (optional): generate explainability metrics
+        analyzer = ModelAnalyzer(model[1], 
+                                 model_name=model_name, 
+                                 model_type=model_type)\
+                        .train_features(x_train)\
+                        .test_features(x_test)
 
+        # Analyzer (optional): generate fairness metrics
+        analyzer.fairness_config(fai_config)\
+            .test_labels(y_test)\
+            .test_inference(test_pred)
+
+        # Run Model Analyzer
+        # Returns a tuple of (shap_values, base_shap_values, global_explainability, fairness_metrics)
+        analyzer.analyze()
+
+        # IMPORTANT: Saving the Model Artefact to Bedrock
+        with open(artefact_path, "wb") as model_file:
+            pickle.dump(model, model_file)
+        bdrk.log_model(artefact_path)
+    
+    return True
 
 def main():
     # Extraneous columns (as might be determined through feature selection)
@@ -140,22 +148,17 @@ def main():
     # model_type = ModelTypes.TREE
 
 
-    # --- Bedrock-native Integrations ---
-    # Bedrock Model Analyzer: generated values
-    (
-        shap_values, 
-        base_shap_values, 
-        global_explainability, 
-        fairness_metrics,
-    ) = compute_log_metrics(model=model, x_train=x_train, 
+    # Compute and log metrics
+    # --- Includes Bedrock-native Integrations ---
+    compute_log_metrics(model=model, x_train=x_train, 
                             x_test=x_test, y_test=y_test, 
                             best_th=TH,
-                            model_name=model_name, model_type=model_type)
+                            model_name=model_name, 
+                            model_type=model_type,
+                            fai_config=FAI_CONFIG,
+                            artefact_path=ARTEFACT_PATH
+                       )
 
-    # IMPORTANT: Saving the Model Artefact  Bedrock
-    with open(OUTPUT_MODEL_PATH, "wb") as model_file:
-        pickle.dump(model, model_file)
-    
     # Bedrock Model Monitoring: pre-requisite for monitoring concept drift
     # Prepare the inference probabilities
     train_prob = model.predict_proba(x_train)[:, 1]
@@ -167,7 +170,6 @@ def main():
         inference=train_prob.tolist(),
     )
     # --- End of Bedrock-native Integrations ---
-
     print("Done!")
 
 if __name__ == "__main__":
