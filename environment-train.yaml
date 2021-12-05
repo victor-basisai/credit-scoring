@@ -27,7 +27,7 @@ dependencies:
     - bdrk==0.9.1
     - boxkite==0.0.5
     # Core
-    - numpy==1.21.1
+    - numpy==1.19.5
     - catboost==1.0.0
     - delayed==0.11.0b1
     - pandas==1.3.1
