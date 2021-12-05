@@ -24,6 +24,7 @@ train {
     parameters {
         DATA_DIR_LOCAL = "data/creditdata"
         SEED = "0"
+        CLASSIFIER = "LR"
         TH = "0.5"
         LR_REGULARIZER = "1e-1"
         RF_N_ESTIMATORS = "100"
