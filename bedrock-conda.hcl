@@ -40,7 +40,7 @@ train {
 # Serve Stanza
 serve {
     # Baseline Docker image
-    image = "python:3.7"
+    image = "python:3.8"
     # Install dependencies
     install = [
         "pip3 install --upgrade pip",

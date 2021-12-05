@@ -6,12 +6,14 @@ train {
     # Step
     step train {
         # Baseline Docker image
-        image = "quay.io/basisai/workload-standard:v0.3.1"
+        image = "continuumio/miniconda3:latest"
         # Install dependencies
         install = [
-            "pip3 install --upgrade pip",
-            "pip3 install -r requirements-train.txt",
+            "conda env update -f environment-train.yaml",
+            "eval \"$(conda shell.bash hook)\"",
+            "conda activate veritas"
         ]
+
         # Entrypoint to main script
         script = [{sh = ["python train.py"]}]
         # Request resources
@@ -35,7 +37,7 @@ train {
 # Serve Stanza
 serve {
     # Baseline Docker image
-    image = "python:3.7"
+    image = "python:3.8"
     # Install dependencies
     install = [
         "pip3 install --upgrade pip",
