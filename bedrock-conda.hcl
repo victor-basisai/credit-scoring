@@ -13,7 +13,6 @@ train {
             "eval \"$(conda shell.bash hook)\"",
             "conda activate veritas"
         ]
-
         # Entrypoint to main script
         script = [{sh = ["python train.py"]}]
         # Request resources
@@ -21,9 +20,9 @@ train {
             cpu = "1.0"
             memory = "4G"
         }
-        # Retries
+        # Only attempt once (default = 3)
         retry {
-          limit = 1
+            limit = 0
         }
     }
     # Environment params shared across all steps in stanza

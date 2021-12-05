@@ -45,7 +45,8 @@ SEED = int(os.getenv("SEED"))
 TH = float(os.getenv("TH"))
 LR_REGULARIZER = float(os.getenv("LR_REGULARIZER")) 
 RF_N_ESTIMATORS = float(os.getenv("RF_N_ESTIMATORS")) 
-CB_ITERATIONS = float(os.getenv("CB_ITERATIONS")) 
+CB_ITERATIONS = float(os.getenv("CB_ITERATIONS"))
+CLASSIFIER = os.getenv("CLASSIFIER")
 
 # ---------------------------------
 # Bedrock functions
@@ -129,35 +130,37 @@ def main():
 
     
     # --- Candidate Binary Classification Algos ---
-    # MODEL 1: LOGISTIC REGRESSION
-    # Use best parameters from a model selection and threshold tuning process
-    model = utils.train_log_reg_model(x_train, y_train, seed=SEED, C=LR_REGULARIZER, upsample=True, verbose=True)
-    model_name = "logreg_model"
-    model_type = ModelTypes.LINEAR
-
-    # MODEL 2: RANDOM FOREST
-    # Uses default threshold of 0.5 and model parameters
-    # model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
-    # model_name = "randomforest_model"
-    # model_type = ModelTypes.TREE
-
-    # MODEL 3: CATBOOST
-    # Uses default threshold of 0.5 and model parameters
-    # model = utils.train_catboost_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
-    # model_name = "catboost_model"
-    # model_type = ModelTypes.TREE
-
+    assert(CLASSIFIER in ["LR","RF","CB"])
+    if CLASSIFIER == "LR":
+        # MODEL 1: LOGISTIC REGRESSION
+        # Use best parameters from a model selection and threshold tuning process
+        model = utils.train_log_reg_model(x_train, y_train, seed=SEED, C=LR_REGULARIZER, upsample=True, verbose=True)
+        model_name = "logreg_model"
+        model_type = ModelTypes.LINEAR
+    elif CLASSIFIER == "RF":
+        # MODEL 2: RANDOM FOREST
+        # Uses default threshold of 0.5 and model parameters
+        model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
+        model_name = "randomforest_model"
+        model_type = ModelTypes.TREE
+    elif CLASSIFIER == "CB":
+        # MODEL 3: CATBOOST
+        # Uses default threshold of 0.5 and model parameters
+        model = utils.train_catboost_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
+        model_name = "catboost_model"
+        model_type = ModelTypes.TREE
 
     # Compute and log metrics
     # --- Includes Bedrock-native Integrations ---
-    compute_log_metrics(model=model, x_train=x_train, 
-                            x_test=x_test, y_test=y_test, 
-                            best_th=TH,
-                            model_name=model_name, 
-                            model_type=model_type,
-                            fai_config=FAI_CONFIG,
-                            artefact_path=ARTEFACT_PATH
-                       )
+    compute_log_metrics(model=model, 
+                        x_train=x_train, 
+                        x_test=x_test, 
+                        y_test=y_test, 
+                        best_th=TH,
+                        model_name=model_name, 
+                        model_type=model_type,
+                        fai_config=FAI_CONFIG,
+                        artefact_path=ARTEFACT_PATH)
 
     # Bedrock Model Monitoring: pre-requisite for monitoring concept drift
     # Prepare the inference probabilities

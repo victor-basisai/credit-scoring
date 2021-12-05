@@ -1,5 +1,4 @@
 # Bedrock
-bdrk==0.9.2
 boxkite==0.0.5
 
 # Core
