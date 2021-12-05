@@ -21,6 +21,10 @@ train {
             cpu = "1.0"
             memory = "4G"
         }
+        # Retries
+        retry {
+          limit = 1
+        }
     }
     # Environment params shared across all steps in stanza
     parameters {
