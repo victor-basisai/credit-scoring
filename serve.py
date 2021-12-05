@@ -6,7 +6,7 @@ import pickle
 import numpy as np
 import json
 from flask import Flask, Response, current_app, request
-from bedrock_client.bedrock.metrics.service import ModelMonitoringService
+from boxkite.monitoring.service import ModelMonitoringService
 
 # ---------------------------------
 # Constants

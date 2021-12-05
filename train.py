@@ -17,11 +17,10 @@ from sklearn.calibration import calibration_curve
 from sklearn import metrics
 import utils.credit as utils
 
-# Bedrock
-from bedrock_client.bedrock.analyzer.model_analyzer import ModelAnalyzer
-from bedrock_client.bedrock.analyzer import ModelTypes
-from bedrock_client.bedrock.api import BedrockApi
-from bedrock_client.bedrock.metrics.service import ModelMonitoringService
+# Bedrock and Boxkite
+import bdrk
+from bdrk.model_analyzer import ModelAnalyzer, ModelTypes
+from boxkite.monitoring.service import ModelMonitoringService
 import pickle
 import logging
 
@@ -29,10 +28,9 @@ import logging
 # Constants
 # ---------------------------------
 
-OUTPUT_MODEL_PATH = "/artefact/model.pkl"
-FEATURE_COLS_PATH = "/artefact/feature_cols.pkl"
+ARTEFACT_PATH = "/artefact/model.pkl"
 
-CONFIG_FAI = {
+FAI_CONFIG = {
     'SEX': {
         'privileged_attribute_values': [1],
         'privileged_group_name': 'Male',  # privileged group name corresponding to values=[1]
@@ -57,7 +55,9 @@ def compute_log_metrics(model, x_train,
                         x_test, y_test, 
                         best_th=0.5,
                         model_name="tree_model", 
-                        model_type=ModelTypes.TREE):
+                        model_type=ModelTypes.TREE,
+                        fai_config=None,
+                        artefact_path="/artefact/model.pkl"):
     """Compute and log metrics."""
     test_prob = model.predict_proba(x_test)[:, 1]
     test_pred = np.where(test_prob > best_th, 1, 0)
@@ -77,35 +77,44 @@ def compute_log_metrics(model, x_train,
           f"  Average precision = {avg_prc:.4f}")
 
     # --- Bedrock-native Integrations ---
-    # Bedrock Logger: captures model metrics
-    bedrock = BedrockApi(logging.getLogger(__name__))
+    # Bedrock client library (bdrk): captures model metrics
+    bdrk.init()
+    with bdrk.start_run():
+        # Log binary classifier metrics into a chart
+        bdrk.log_binary_classifier_metrics(y_test.astype(int).tolist(),
+                                              test_prob.flatten().tolist())
 
-    # Log into a chart
-    bedrock.log_chart_data(y_test.astype(int).tolist(),
-                           test_prob.flatten().tolist())
+        # Log key-value pairs
+        bdrk.log_metric("Accuracy", acc)
+        bdrk.log_metric("Precision", precision)
+        bdrk.log_metric("Recall", recall)
+        bdrk.log_metric("F1 score", f1_score)
+        bdrk.log_metric("ROC AUC", roc_auc)
+        bdrk.log_metric("Avg precision", avg_prc)
 
-    # Log key-value pairs
-    bedrock.log_metric("Accuracy", acc)
-    bedrock.log_metric("Precision", precision)
-    bedrock.log_metric("Recall", recall)
-    bedrock.log_metric("F1 score", f1_score)
-    bedrock.log_metric("ROC AUC", roc_auc)
-    bedrock.log_metric("Avg precision", avg_prc)
+        # Bedrock Model Analyzer: generates model explainability and fairness metrics
+        # Analyzer (optional): generate explainability metrics
+        analyzer = ModelAnalyzer(model[1], 
+                                 model_name=model_name, 
+                                 model_type=model_type)\
+                        .train_features(x_train)\
+                        .test_features(x_test)
 
-    # Bedrock Model Analyzer: generates model explainability and fairness metrics
-    # Analyzer (optional): generate explainability metrics
-    analyzer = ModelAnalyzer(model[1], model_name=model_name, model_type=model_type)\
-                    .train_features(x_train)\
-                    .test_features(x_test)
+        # Analyzer (optional): generate fairness metrics
+        analyzer.fairness_config(fai_config)\
+            .test_labels(y_test)\
+            .test_inference(test_pred)
+
+        # Run Model Analyzer
+        # Returns a tuple of (shap_values, base_shap_values, global_explainability, fairness_metrics)
+        analyzer.analyze()
+
+        # IMPORTANT: Saving the Model Artefact to Bedrock
+        with open(artefact_path, "wb") as model_file:
+            pickle.dump(model, model_file)
+        bdrk.log_model(artefact_path)
     
-    # Analyzer (optional): generate fairness metrics
-    analyzer.fairness_config(CONFIG_FAI)\
-        .test_labels(y_test)\
-        .test_inference(test_pred)
-    
-    # Return the 4 metrics
-    return analyzer.analyze()
-
+    return True
 
 def main():
     # Extraneous columns (as might be determined through feature selection)
@@ -122,39 +131,34 @@ def main():
     # --- Candidate Binary Classification Algos ---
     # MODEL 1: LOGISTIC REGRESSION
     # Use best parameters from a model selection and threshold tuning process
-    # model = utils.train_log_reg_model(x_train, y_train, seed=SEED, C=LR_REGULARIZER, upsample=True, verbose=True)
-    # model_name = "logreg_model"
-    # model_type = ModelTypes.LINEAR
+    model = utils.train_log_reg_model(x_train, y_train, seed=SEED, C=LR_REGULARIZER, upsample=True, verbose=True)
+    model_name = "logreg_model"
+    model_type = ModelTypes.LINEAR
 
     # MODEL 2: RANDOM FOREST
     # Uses default threshold of 0.5 and model parameters
-    model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
-    model_name = "randomforest_model"
-    model_type = ModelTypes.TREE
+    # model = utils.train_rf_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
+    # model_name = "randomforest_model"
+    # model_type = ModelTypes.TREE
 
     # MODEL 3: CATBOOST
     # Uses default threshold of 0.5 and model parameters
-    model = utils.train_catboost_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
-    model_name = "catboost_model"
-    model_type = ModelTypes.TREE
+    # model = utils.train_catboost_model(x_train, y_train, seed=SEED, upsample=True, verbose=True)
+    # model_name = "catboost_model"
+    # model_type = ModelTypes.TREE
 
 
-    # --- Bedrock-native Integrations ---
-    # Bedrock Model Analyzer: generated values
-    (
-        shap_values, 
-        base_shap_values, 
-        global_explainability, 
-        fairness_metrics,
-    ) = compute_log_metrics(model=model, x_train=x_train, 
+    # Compute and log metrics
+    # --- Includes Bedrock-native Integrations ---
+    compute_log_metrics(model=model, x_train=x_train, 
                             x_test=x_test, y_test=y_test, 
                             best_th=TH,
-                            model_name=model_name, model_type=model_type)
+                            model_name=model_name, 
+                            model_type=model_type,
+                            fai_config=FAI_CONFIG,
+                            artefact_path=ARTEFACT_PATH
+                       )
 
-    # IMPORTANT: Saving the Model Artefact  Bedrock
-    with open(OUTPUT_MODEL_PATH, "wb") as model_file:
-        pickle.dump(model, model_file)
-    
     # Bedrock Model Monitoring: pre-requisite for monitoring concept drift
     # Prepare the inference probabilities
     train_prob = model.predict_proba(x_train)[:, 1]
@@ -166,7 +170,6 @@ def main():
         inference=train_prob.tolist(),
     )
     # --- End of Bedrock-native Integrations ---
-
     print("Done!")
 
 if __name__ == "__main__":
